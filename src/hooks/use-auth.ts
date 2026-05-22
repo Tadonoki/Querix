@@ -1,68 +1,84 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  AUTH_EVENT,
-  LocalAuthUser,
-  createLocalEmailUser,
-  readLocalAuthUser,
-  saveLocalAuthUser
-} from "@/lib/local-auth";
+import { useCallback, useMemo } from "react";
+import { authClient } from "@/lib/auth-client";
 
-export type MockUser = LocalAuthUser;
+type AuthSession = ReturnType<typeof authClient.useSession>["data"];
+export type AuthUser = NonNullable<AuthSession>["user"];
+
+function authErrorMessage(message: string | undefined, fallback: string) {
+  if (!message) {
+    return fallback;
+  }
+
+  if (
+    message.toLowerCase().includes("invalid") ||
+    message.toLowerCase().includes("password") ||
+    message.toLowerCase().includes("credential")
+  ) {
+    return "Email atau password salah.";
+  }
+
+  return message;
+}
 
 export function useAuth() {
-  const [user, setUser] = useState<MockUser | null>(null);
-  const [ready, setReady] = useState(false);
+  const session = authClient.useSession();
+  const user = session.data?.user ?? null;
 
-  useEffect(() => {
-    const syncUser = () => {
-      setUser(readLocalAuthUser());
-      setReady(true);
-    };
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const response = await authClient.signIn.email({
+        email: email.trim().toLowerCase(),
+        password
+      });
 
-    syncUser();
-    window.addEventListener("storage", syncUser);
-    window.addEventListener(AUTH_EVENT, syncUser);
+      if (response.error) {
+        throw new Error(
+          authErrorMessage(response.error.message, "Email atau password salah.")
+        );
+      }
 
-    return () => {
-      window.removeEventListener("storage", syncUser);
-      window.removeEventListener(AUTH_EVENT, syncUser);
-    };
-  }, []);
-
-  const login = useCallback(async (email: string, password: string) => {
-    void password;
-
-    const nextUser = createLocalEmailUser({ email });
-    saveLocalAuthUser(nextUser);
-    return nextUser;
-  }, []);
+      await session.refetch();
+      return response.data?.user ?? null;
+    },
+    [session]
+  );
 
   const signup = useCallback(
     async (name: string, email: string, password: string) => {
-      void password;
+      const response = await authClient.signUp.email({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        password
+      });
 
-      const nextUser = createLocalEmailUser({ email, name });
-      saveLocalAuthUser(nextUser);
-      return nextUser;
+      if (response.error) {
+        throw new Error(
+          authErrorMessage(response.error.message, "Pendaftaran gagal.")
+        );
+      }
+
+      await session.refetch();
+      return response.data?.user ?? null;
     },
-    []
+    [session]
   );
 
   const logout = useCallback(async () => {
-    saveLocalAuthUser(null);
-  }, []);
+    await authClient.signOut();
+    await session.refetch();
+  }, [session]);
 
   return useMemo(
     () => ({
       user,
-      ready,
+      ready: !session.isPending,
       isAuthenticated: Boolean(user),
       login,
       signup,
       logout
     }),
-    [login, logout, ready, signup, user]
+    [login, logout, session.isPending, signup, user]
   );
 }
