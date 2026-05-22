@@ -21,10 +21,10 @@ export function HeroSection() {
             <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
             Platform Belajar SQL Interaktif Bahasa Indonesia
           </Badge>
-          <h1 className="max-w-[780px] text-balance text-4xl font-bold leading-tight tracking-normal text-primary sm:text-5xl lg:text-[3rem] lg:leading-[1.06] xl:text-[4.5rem] xl:leading-[1.04]">
+          <h1 className="max-w-[780px] text-balance text-4xl font-bold leading-tight tracking-normal text-primary sm:text-5xl lg:text-[3rem] lg:leading-[1.06] xl:text-[4rem] xl:leading-[1.05]">
             Belajar SQL dari Nol, Langsung Praktik
           </h1>
-          <p className="mt-5 max-w-[700px] break-words text-base leading-8 text-muted-foreground sm:text-lg lg:mt-7 lg:text-[1.35rem] lg:leading-9">
+          <p className="mt-5 max-w-[700px] break-words text-base leading-8 text-muted-foreground sm:text-lg lg:mt-7 lg:text-xl lg:leading-9">
             Querix membantu kamu memahami SQL dengan penjelasan sederhana,
             latihan interaktif, dan contoh kasus Data Analyst dunia nyata.
           </p>
@@ -52,7 +52,7 @@ export function HeroSection() {
 
         <div className="relative min-w-0 overflow-hidden lg:justify-self-end">
           <div className="w-full max-w-full rounded-lg border bg-white/92 p-3 shadow-crisp backdrop-blur sm:p-4 lg:max-w-[700px] lg:p-7 xl:max-w-[740px] xl:p-8">
-            <div className="max-w-full overflow-x-auto rounded-lg bg-slate-950 p-4 font-mono text-sm leading-7 text-slate-100 sm:p-5 lg:p-8 lg:text-[1.15rem] lg:leading-9">
+            <div className="max-w-full overflow-x-auto rounded-lg bg-slate-950 p-4 font-mono text-sm leading-7 text-slate-100 sm:p-5 lg:p-8 lg:text-base lg:leading-8">
               <p>
                 <span className="text-sky-300">SELECT</span> nama, kota
               </p>
@@ -71,7 +71,7 @@ export function HeroSection() {
               />
             </div>
           </div>
-          <div className="mt-5 grid grid-cols-1 gap-3 text-center text-sm sm:grid-cols-3 lg:max-w-[700px] lg:text-lg xl:max-w-[740px]">
+          <div className="mt-5 grid grid-cols-1 gap-3 text-center text-sm sm:grid-cols-3 lg:max-w-[700px] lg:text-base xl:max-w-[740px]">
             {["SELECT", "WHERE", "GROUP BY"].map((item) => (
               <div key={item} className="rounded-lg border bg-white px-3 py-3 lg:py-5 xl:py-6">
                 <p className="font-semibold text-primary">{item}</p>
