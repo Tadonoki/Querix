@@ -20,15 +20,15 @@ export function ResultTable({
 }) {
   if (rows.length === 0) {
     return (
-      <div className="rounded-lg border bg-white p-5 text-sm text-muted-foreground lg:p-6 lg:text-base">
+      <div className="rounded-lg border bg-white p-5 text-sm text-muted-foreground max-lg:w-full max-lg:max-w-full max-lg:min-w-0 max-lg:break-words lg:p-6 lg:text-base">
         Belum ada hasil. Jalankan query untuk melihat data latihan.
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-full overflow-hidden rounded-lg border bg-white">
-      <div className="w-full max-w-full overflow-x-auto overscroll-x-contain">
+    <div className="w-full max-w-full overflow-hidden rounded-lg border bg-white max-lg:min-w-0">
+      <div className="w-full max-w-full overflow-x-auto max-lg:overscroll-x-contain">
         <table className="w-full min-w-[360px] border-collapse text-left text-sm sm:min-w-[420px] lg:text-base">
           <thead className="bg-muted text-xs uppercase text-muted-foreground lg:text-sm">
             <tr>

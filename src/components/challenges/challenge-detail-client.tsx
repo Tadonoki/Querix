@@ -160,8 +160,8 @@ export function ChallengeDetailClient({ challenge }: { challenge: Challenge }) {
   }
 
   return (
-    <main className="bg-querix-paper py-10 lg:py-14">
-      <div className="container space-y-6 lg:space-y-8">
+    <main className="max-lg:max-w-full max-lg:overflow-x-hidden bg-querix-paper py-10 lg:py-14">
+      <div className="container space-y-6 max-lg:w-full max-lg:max-w-full max-lg:min-w-0 lg:space-y-8">
         <Button asChild variant="ghost" className="px-0">
           <Link href="/challenges">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
@@ -169,12 +169,14 @@ export function ChallengeDetailClient({ challenge }: { challenge: Challenge }) {
           </Link>
         </Button>
 
-        <div className="grid gap-6 xl:grid-cols-[0.42fr_0.58fr] xl:gap-8">
-          <section className="space-y-5 lg:space-y-6">
-            <div className="rounded-lg border bg-white p-6 shadow-soft lg:p-8">
+        <div className="grid gap-6 max-lg:w-full max-lg:max-w-full max-lg:min-w-0 xl:grid-cols-[0.42fr_0.58fr] xl:gap-8">
+          <section className="space-y-5 max-lg:min-w-0 max-lg:max-w-full lg:space-y-6">
+            <div className="rounded-lg border bg-white p-6 shadow-soft max-lg:w-full max-lg:max-w-full max-lg:min-w-0 lg:p-8">
               <div className="mb-4 flex flex-wrap items-center gap-2">
                 <DifficultyBadge difficulty={challenge.difficulty} />
-                <Badge variant="outline">{challenge.topic}</Badge>
+                <Badge variant="outline" className="max-lg:max-w-full max-lg:break-words">
+                  {challenge.topic}
+                </Badge>
                 {completed ? (
                   <Badge variant="success" className="gap-1.5">
                     <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
@@ -182,21 +184,23 @@ export function ChallengeDetailClient({ challenge }: { challenge: Challenge }) {
                   </Badge>
                 ) : null}
               </div>
-              <h1 className="text-3xl font-bold tracking-normal text-primary lg:text-5xl">
+              <h1 className="text-3xl font-bold tracking-normal text-primary max-lg:break-words lg:text-5xl">
                 {challenge.title}
               </h1>
-              <p className="mt-4 text-base leading-8 text-muted-foreground lg:text-lg lg:leading-9">
+              <p className="mt-4 text-base leading-8 text-muted-foreground max-lg:break-words lg:text-lg lg:leading-9">
                 {challenge.story}
               </p>
             </div>
 
-            <Card>
+            <Card className="max-lg:w-full max-lg:max-w-full max-lg:min-w-0">
               <CardHeader>
                 <CardTitle>Tugas</CardTitle>
-                <CardDescription>{challenge.task}</CardDescription>
+                <CardDescription className="max-lg:break-words">
+                  {challenge.task}
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="rounded-lg border bg-yellow-50 p-4 text-sm leading-6 text-yellow-900 lg:p-5 lg:text-base lg:leading-7">
+                <p className="rounded-lg border bg-yellow-50 p-4 text-sm leading-6 text-yellow-900 max-lg:break-words lg:p-5 lg:text-base lg:leading-7">
                   {challenge.expectedInfo}
                 </p>
               </CardContent>
@@ -204,7 +208,7 @@ export function ChallengeDetailClient({ challenge }: { challenge: Challenge }) {
 
             <SchemaExplorer highlightTable={challenge.table} />
 
-            <Card>
+            <Card className="max-lg:w-full max-lg:max-w-full max-lg:min-w-0">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Lightbulb className="h-5 w-5 text-warning" aria-hidden="true" />
@@ -215,8 +219,8 @@ export function ChallengeDetailClient({ challenge }: { challenge: Challenge }) {
                 <ul className="space-y-3 text-sm leading-6 text-muted-foreground lg:text-base lg:leading-7">
                   {challenge.hints.map((hint) => (
                     <li key={hint} className="flex gap-3">
-                      <span className="mt-2 h-2 w-2 rounded-full bg-warning" />
-                      <span>{hint}</span>
+                      <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-warning" />
+                      <span className="max-lg:min-w-0 max-lg:break-words">{hint}</span>
                     </li>
                   ))}
                 </ul>
@@ -224,16 +228,16 @@ export function ChallengeDetailClient({ challenge }: { challenge: Challenge }) {
             </Card>
           </section>
 
-          <section className="space-y-5 lg:space-y-6">
-            <Card>
+          <section className="space-y-5 max-lg:min-w-0 max-lg:max-w-full lg:space-y-6">
+            <Card className="max-lg:w-full max-lg:max-w-full max-lg:min-w-0">
               <CardHeader>
                 <CardTitle>Editor SQL</CardTitle>
-                <CardDescription>
+                <CardDescription className="max-lg:break-words">
                   Jalankan query untuk melihat hasil mock, lalu submit jawaban
                   untuk mendapat feedback.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 max-lg:min-w-0">
                 <SqlEditor value={query} onChange={setQuery} height="390px" />
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <Button
@@ -278,13 +282,13 @@ export function ChallengeDetailClient({ challenge }: { challenge: Challenge }) {
             {feedback ? <FeedbackAlert feedback={feedback} /> : null}
 
             {feedback?.status === "error" ? (
-              <Card className="border-amber-200 bg-amber-50">
+              <Card className="border-amber-200 bg-amber-50 max-lg:w-full max-lg:max-w-full max-lg:min-w-0">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-base text-amber-900">
                     <Lightbulb className="h-5 w-5" aria-hidden="true" />
                     Petunjuk cepat
                   </CardTitle>
-                  <CardDescription className="text-amber-900/80">
+                  <CardDescription className="text-amber-900/80 max-lg:break-words">
                     Tenang, ini masih latihan. Cek bagian yang diminta lalu coba
                     jalankan lagi.
                   </CardDescription>
@@ -300,18 +304,18 @@ export function ChallengeDetailClient({ challenge }: { challenge: Challenge }) {
             ) : null}
 
             {feedback?.status === "success" ? (
-              <Card className="border-green-200 bg-green-50">
+              <Card className="border-green-200 bg-green-50 max-lg:w-full max-lg:max-w-full max-lg:min-w-0">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-base text-green-800">
                     <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
                     Jawaban benar
                   </CardTitle>
-                  <CardDescription className="text-green-800/80">
+                  <CardDescription className="text-green-800/80 max-lg:break-words">
                     Progres tantangan sudah disimpan. Kamu bisa lanjut latihan
                     atau kembali melihat daftar tantangan.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-3 sm:grid-cols-3">
+                <CardContent className="grid gap-3 max-lg:min-w-0 sm:grid-cols-3">
                   {nextChallenge ? (
                     <LoadingLinkButton
                       href={getChallengePath(nextChallenge)}
@@ -349,10 +353,10 @@ export function ChallengeDetailClient({ challenge }: { challenge: Challenge }) {
               </Card>
             ) : null}
 
-            <Card>
+            <Card className="max-lg:w-full max-lg:max-w-full max-lg:min-w-0">
               <CardHeader>
                 <CardTitle>Hasil Query</CardTitle>
-                <CardDescription>
+                <CardDescription className="max-lg:break-words">
                   {loadingAction === "run"
                     ? "Menjalankan query..."
                     : loadingAction === "submit"
@@ -360,9 +364,9 @@ export function ChallengeDetailClient({ challenge }: { challenge: Challenge }) {
                       : result.message}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="max-lg:min-w-0">
                 {loadingAction ? (
-                  <div className="flex min-h-[160px] items-center justify-center rounded-lg border bg-white text-sm font-semibold text-primary lg:min-h-[190px] lg:text-base">
+                  <div className="flex min-h-[160px] items-center justify-center rounded-lg border bg-white text-sm font-semibold text-primary max-lg:max-w-full lg:min-h-[190px] lg:text-base">
                     <LoadingSpinner className="mr-2 text-secondary" />
                     {loadingAction === "run"
                       ? "Menjalankan query..."
@@ -374,14 +378,14 @@ export function ChallengeDetailClient({ challenge }: { challenge: Challenge }) {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="max-lg:w-full max-lg:max-w-full max-lg:min-w-0">
               <CardHeader>
                 <CardTitle>Expected Result</CardTitle>
-                <CardDescription>
+                <CardDescription className="max-lg:break-words">
                   Contoh hasil yang perlu kamu kejar dari tantangan ini.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="max-lg:min-w-0">
                 <ResultTable
                   columns={expectedResult.columns}
                   rows={expectedResult.rows}

@@ -26,13 +26,13 @@ export function SqlEditor({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-lg border bg-slate-950 shadow-crisp",
+        "overflow-hidden rounded-lg border bg-slate-950 shadow-crisp max-lg:w-full max-lg:max-w-full max-lg:min-w-0",
         className
       )}
     >
-      <div className="flex items-center justify-between border-b border-white/10 px-4 py-2 text-xs text-slate-300 lg:px-5 lg:py-2.5 lg:text-sm">
-        <span>query.sql</span>
-        <span>SQL</span>
+      <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-2 text-xs text-slate-300 max-lg:min-w-0 lg:px-5 lg:py-2.5 lg:text-sm">
+        <span className="max-lg:min-w-0 max-lg:break-words">query.sql</span>
+        <span className="shrink-0">SQL</span>
       </div>
       <MonacoEditor
         height={height}
