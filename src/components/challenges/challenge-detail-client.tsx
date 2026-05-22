@@ -319,11 +319,11 @@ export function ChallengeDetailClient({ challenge }: { challenge: Challenge }) {
                       className="sm:w-full"
                       requireAuth
                     >
-                      Lanjut ke Tantangan Berikutnya
+                      Tantangan Berikutnya
                       <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </LoadingLinkButton>
                   ) : (
-                    <Button disabled>Lanjut ke Tantangan Berikutnya</Button>
+                    <Button disabled>Tantangan Berikutnya</Button>
                   )}
                   <LoadingLinkButton
                     href="/challenges"
