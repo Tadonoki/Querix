@@ -16,7 +16,7 @@ function authErrorMessage(message: string | undefined, fallback: string) {
     message.toLowerCase().includes("password") ||
     message.toLowerCase().includes("credential")
   ) {
-    return "Email atau password salah.";
+    return "Password minimal 8 karakter";
   }
 
   return message;
@@ -35,7 +35,10 @@ export function useAuth() {
 
       if (response.error) {
         throw new Error(
-          authErrorMessage(response.error.message, "Email atau password salah.")
+          authErrorMessage(
+            response.error.message,
+            "Email atau password salah.",
+          ),
         );
       }
 

@@ -54,14 +54,30 @@ async function runQuery(query: string, challengeId: string) {
   return runMockQuery(query);
 }
 
-async function submitAnswer(query: string, challenge: Challenge) {
-  const feedback = validateChallenge(query, challenge);
-  const expectedResult = getExpectedResultForChallenge(challenge);
+function localDateKey() {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
-  return {
-    feedback,
-    result: feedback.status === "success" ? expectedResult : runMockQuery(query)
-  };
+async function submitAnswer(query: string, challenge: Challenge) {
+  const res = await fetch("/api/progress/challenges", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      challengeId: challenge.id,
+      query,
+      today: localDateKey()
+    })
+  });
+
+  if (!res.ok) {
+    throw new Error("Gagal mengirim jawaban.");
+  }
+
+  return await res.json();
 }
 
 export function ChallengeDetailClient({ challenge }: { challenge: Challenge }) {
@@ -71,7 +87,7 @@ export function ChallengeDetailClient({ challenge }: { challenge: Challenge }) {
   );
   const [feedback, setFeedback] = useState<ValidationResult | null>(null);
   const [loadingAction, setLoadingAction] = useState<LoadingAction>(null);
-  const { progress, markChallengeComplete } = useLearningProgress();
+  const { progress, markChallengeComplete, setProgressAndNotify } = useLearningProgress();
 
   const completed = progress.completedChallenges.includes(challenge.id);
   const expectedResult = useMemo(
@@ -119,8 +135,8 @@ export function ChallengeDetailClient({ challenge }: { challenge: Challenge }) {
       setFeedback(payload.feedback);
       setResult(payload.result);
 
-      if (payload.feedback.status === "success") {
-        await markChallengeComplete(challenge.id);
+      if (payload.feedback.status === "success" && payload.progress) {
+        setProgressAndNotify(payload.progress);
       }
     } catch {
       const validation = validateChallenge(query, challenge);

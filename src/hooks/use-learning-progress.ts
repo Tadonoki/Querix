@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { challenges, lessons } from "@/lib/data";
+import { useAuth } from "@/hooks/use-auth";
 
 export type LearningProgress = {
   completedLessons: string[];
@@ -11,9 +12,6 @@ export type LearningProgress = {
   streakCount: number;
 };
 
-const STORAGE_KEY = "querix-progress";
-const DAY_MS = 24 * 60 * 60 * 1000;
-
 const emptyProgress: LearningProgress = {
   completedLessons: [],
   completedChallenges: [],
@@ -22,43 +20,6 @@ const emptyProgress: LearningProgress = {
   streakCount: 0
 };
 
-const legacyChallengeIdMap: Record<string, string> = {
-  "laporan-marketing": "challenge-select",
-  "pelanggan-jakarta": "challenge-where",
-  "produk-termahal": "challenge-order-by",
-  "pesanan-terbaru": "challenge-limit",
-  "total-pelanggan-kota": "challenge-group-by"
-};
-
-function uniqueValidItems(items: unknown, validIds: string[]) {
-  if (!Array.isArray(items)) {
-    return [];
-  }
-
-  const validSet = new Set(validIds);
-  return Array.from(
-    new Set(items.filter((item): item is string => typeof item === "string"))
-  ).filter((item) => validSet.has(item));
-}
-
-function normalizeCompletedChallenges(items: unknown) {
-  if (!Array.isArray(items)) {
-    return [];
-  }
-
-  const validChallengeIds = new Set(challenges.map((challenge) => challenge.id));
-  const migrated = items
-    .filter((item): item is string => typeof item === "string")
-    .map((item) => legacyChallengeIdMap[item] ?? item)
-    .filter((item) => validChallengeIds.has(item));
-
-  return Array.from(new Set(migrated));
-}
-
-function isDateKey(value: unknown): value is string {
-  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
-}
-
 function localDateKey(date = new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -66,115 +27,73 @@ function localDateKey(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
-function dateKeyToTime(dateKey: string) {
-  const [year, month, day] = dateKey.split("-").map(Number);
-  return new Date(year, month - 1, day).getTime();
-}
-
-function daysBetween(previousDate: string, nextDate: string) {
-  return Math.round(
-    (dateKeyToTime(nextDate) - dateKeyToTime(previousDate)) / DAY_MS
-  );
-}
-
-function normalizeStreak(lastActivityDate: string | null, streakCount = 0) {
-  if (!lastActivityDate) {
-    return 0;
-  }
-
-  const dayGap = daysBetween(lastActivityDate, localDateKey());
-  if (dayGap < 0 || dayGap > 1) {
-    return 0;
-  }
-
-  return Math.max(1, streakCount);
-}
-
-function normalizeProgress(progress: Partial<LearningProgress>) {
-  const lessonSlugs = lessons.map((lesson) => lesson.slug);
-  const lastOpenedLesson = lessonSlugs.includes(progress.lastOpenedLesson ?? "")
-    ? progress.lastOpenedLesson ?? emptyProgress.lastOpenedLesson
-    : emptyProgress.lastOpenedLesson;
-  const lastActivityDate = isDateKey(progress.lastActivityDate)
-    ? progress.lastActivityDate
-    : null;
-
-  return {
-    completedLessons: uniqueValidItems(progress.completedLessons, lessonSlugs),
-    completedChallenges: normalizeCompletedChallenges(
-      progress.completedChallenges
-    ),
-    lastOpenedLesson,
-    lastActivityDate,
-    streakCount: normalizeStreak(lastActivityDate, progress.streakCount)
-  };
-}
-
-function readProgress() {
-  if (typeof window === "undefined") {
-    return emptyProgress;
-  }
-
-  try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (!stored) {
-      return emptyProgress;
-    }
-
-    return normalizeProgress({
-      ...emptyProgress,
-      ...(JSON.parse(stored) as Partial<LearningProgress>)
-    });
-  } catch {
-    return emptyProgress;
-  }
-}
-
-function applyActivityStreak(progress: LearningProgress) {
-  const today = localDateKey();
-
-  if (progress.lastActivityDate === today) {
-    return {
-      ...progress,
-      lastActivityDate: today,
-      streakCount: Math.max(progress.streakCount, 1)
-    };
-  }
-
-  if (
-    progress.lastActivityDate &&
-    daysBetween(progress.lastActivityDate, today) === 1
-  ) {
-    return {
-      ...progress,
-      lastActivityDate: today,
-      streakCount: progress.streakCount + 1
-    };
-  }
-
-  return {
-    ...progress,
-    lastActivityDate: today,
-    streakCount: 1
-  };
-}
-
 export function useLearningProgress() {
+  const { isAuthenticated, ready: authReady } = useAuth();
   const [progress, setProgress] = useState<LearningProgress>(emptyProgress);
   const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    setProgress(readProgress());
-    setReady(true);
+  const setProgressAndNotify = useCallback((newProgress: LearningProgress) => {
+    setProgress(newProgress);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent<LearningProgress>("querix-progress-update", {
+          detail: newProgress
+        })
+      );
+    }
   }, []);
 
+  // Sync state across hooks on progress changes
   useEffect(() => {
-    if (!ready) {
+    if (typeof window === "undefined") return;
+
+    function handleProgressUpdate(e: Event) {
+      const customEvent = e as CustomEvent<LearningProgress>;
+      if (customEvent.detail) {
+        setProgress(customEvent.detail);
+      }
+    }
+
+    window.addEventListener("querix-progress-update", handleProgressUpdate);
+    return () => {
+      window.removeEventListener("querix-progress-update", handleProgressUpdate);
+    };
+  }, []);
+
+  // Fetch initial progress when auth status changes
+  useEffect(() => {
+    if (!authReady) {
       return;
     }
 
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
-  }, [progress, ready]);
+    if (!isAuthenticated) {
+      setProgressAndNotify(emptyProgress);
+      setReady(true);
+      return;
+    }
+
+    let active = true;
+    async function fetchProgress() {
+      try {
+        const res = await fetch("/api/progress");
+        if (res.ok && active) {
+          const data = await res.json();
+          setProgressAndNotify(data.progress);
+        }
+      } catch (err) {
+        console.error("Failed to fetch learning progress", err);
+      } finally {
+        if (active) {
+          setReady(true);
+        }
+      }
+    }
+
+    fetchProgress();
+    return () => {
+      active = false;
+    };
+  }, [isAuthenticated, authReady, setProgressAndNotify]);
 
   const completedLessonCount = progress.completedLessons.length;
   const completedChallengeCount = progress.completedChallenges.length;
@@ -193,41 +112,83 @@ export function useLearningProgress() {
     (completedLearningItems / Math.max(totalLearningItems, 1)) * 100
   );
 
-  const markLessonComplete = useCallback(async (slug: string) => {
-    setProgress((current) =>
-      applyActivityStreak({
-        ...current,
-        completedLessons: current.completedLessons.includes(slug)
-          ? current.completedLessons
-          : [...current.completedLessons, slug],
-        lastOpenedLesson: slug
-      })
-    );
-  }, []);
-
-  const setLastOpenedLesson = useCallback((slug: string) => {
-    setProgress((current) => {
-      if (current.lastOpenedLesson === slug) {
-        return current;
+  const markLessonComplete = useCallback(
+    async (slug: string) => {
+      if (!isAuthenticated) {
+        return;
       }
 
-      return {
-        ...current,
-        lastOpenedLesson: slug
-      };
-    });
-  }, []);
+      try {
+        const res = await fetch("/api/progress/lessons", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ slug, today: localDateKey() })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setProgressAndNotify(data.progress);
+        }
+      } catch (err) {
+        console.error("Failed to mark lesson complete", err);
+      }
+    },
+    [isAuthenticated, setProgressAndNotify]
+  );
 
-  const markChallengeComplete = useCallback(async (id: string) => {
-    setProgress((current) =>
-      applyActivityStreak({
-        ...current,
-        completedChallenges: current.completedChallenges.includes(id)
-          ? current.completedChallenges
-          : [...current.completedChallenges, id]
-      })
-    );
-  }, []);
+  const setLastOpenedLesson = useCallback(
+    async (slug: string) => {
+      if (!isAuthenticated) {
+        return;
+      }
+
+      // Optimistic local update
+      setProgress((current) => {
+        if (current.lastOpenedLesson === slug) {
+          return current;
+        }
+        const updated = { ...current, lastOpenedLesson: slug };
+        return updated;
+      });
+
+      try {
+        await fetch("/api/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lastOpenedLesson: slug })
+        });
+      } catch (err) {
+        console.error("Failed to update last opened lesson", err);
+      }
+    },
+    [isAuthenticated]
+  );
+
+  const markChallengeComplete = useCallback(
+    async (id: string) => {
+      if (!isAuthenticated) {
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/progress/challenges", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            challengeId: id,
+            onlyMarkComplete: true,
+            today: localDateKey()
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setProgressAndNotify(data.progress);
+        }
+      } catch (err) {
+        console.error("Failed to mark challenge complete", err);
+      }
+    },
+    [isAuthenticated, setProgressAndNotify]
+  );
 
   return useMemo(
     () => ({
@@ -240,7 +201,8 @@ export function useLearningProgress() {
       overallProgress,
       markLessonComplete,
       setLastOpenedLesson,
-      markChallengeComplete
+      markChallengeComplete,
+      setProgressAndNotify // Expose this so submissions can update progress directly
     }),
     [
       challengeProgress,
@@ -252,7 +214,8 @@ export function useLearningProgress() {
       overallProgress,
       progress,
       ready,
-      setLastOpenedLesson
+      setLastOpenedLesson,
+      setProgressAndNotify
     ]
   );
 }
