@@ -6,17 +6,35 @@ import { authClient } from "@/lib/auth-client";
 type AuthSession = ReturnType<typeof authClient.useSession>["data"];
 export type AuthUser = NonNullable<AuthSession>["user"];
 
-function authErrorMessage(message: string | undefined, fallback: string) {
+function authErrorMessage(
+  message: string | undefined,
+  fallback: string,
+  isSignup = false
+) {
   if (!message) {
     return fallback;
   }
 
-  if (
-    message.toLowerCase().includes("invalid") ||
-    message.toLowerCase().includes("password") ||
-    message.toLowerCase().includes("credential")
-  ) {
-    return "Password minimal 8 karakter";
+  const lowerMessage = message.toLowerCase();
+
+  if (isSignup) {
+    if (
+      lowerMessage.includes("invalid") ||
+      lowerMessage.includes("password") ||
+      lowerMessage.includes("credential")
+    ) {
+      return "Password minimal 8 karakter";
+    }
+  } else {
+    // For login, mapping credentials or validation/invalid errors to "Email atau password salah."
+    if (
+      lowerMessage.includes("invalid") ||
+      lowerMessage.includes("password") ||
+      lowerMessage.includes("credential") ||
+      lowerMessage.includes("user")
+    ) {
+      return "Email atau password salah.";
+    }
   }
 
   return message;
@@ -38,7 +56,8 @@ export function useAuth() {
           authErrorMessage(
             response.error.message,
             "Email atau password salah.",
-          ),
+            false
+          )
         );
       }
 
@@ -58,7 +77,7 @@ export function useAuth() {
 
       if (response.error) {
         throw new Error(
-          authErrorMessage(response.error.message, "Pendaftaran gagal.")
+          authErrorMessage(response.error.message, "Pendaftaran gagal.", true)
         );
       }
 

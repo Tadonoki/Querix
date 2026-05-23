@@ -56,7 +56,7 @@ export function PlaygroundClient() {
   }
 
   return (
-    <main className="bg-querix-paper py-10 lg:py-14">
+    <main className="bg-querix-paper py-10 lg:py-14 max-md:w-full max-md:max-w-full max-md:overflow-hidden">
       <div className="container space-y-8 lg:space-y-10">
         <section className="max-w-4xl">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-primary text-primary-foreground lg:h-14 lg:w-14">
@@ -74,10 +74,10 @@ export function PlaygroundClient() {
           </Badge>
         </section>
 
-        <section className="grid gap-6 xl:grid-cols-[0.34fr_0.66fr] xl:gap-8">
-          <div className="space-y-5 lg:space-y-6">
+        <section className="grid gap-6 xl:grid-cols-[0.34fr_0.66fr] xl:gap-8 max-md:w-full max-md:max-w-full max-md:min-w-0">
+          <div className="space-y-5 lg:space-y-6 max-md:w-full max-md:max-w-full max-md:min-w-0">
             <SchemaExplorer />
-            <Card>
+            <Card className="max-md:w-full max-md:max-w-full max-md:min-w-0 max-md:overflow-hidden">
               <CardHeader>
                 <CardTitle>Contoh Query</CardTitle>
                 <CardDescription>
@@ -88,7 +88,7 @@ export function PlaygroundClient() {
                 {sampleQueries.map((sample) => (
                   <button
                     key={sample}
-                    className="w-full rounded-lg border bg-white p-3 text-left font-mono text-sm leading-6 transition hover:border-secondary hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:p-4 lg:text-[15px] lg:leading-7"
+                    className="w-full rounded-lg border bg-white p-3 text-left font-mono text-sm leading-6 transition hover:border-secondary hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:p-4 lg:text-[15px] lg:leading-7 whitespace-normal break-all md:break-words"
                     onClick={() => handleSample(sample)}
                   >
                     {sample}
@@ -98,8 +98,8 @@ export function PlaygroundClient() {
             </Card>
           </div>
 
-          <div className="space-y-5 lg:space-y-6">
-            <Card>
+          <div className="space-y-5 lg:space-y-6 max-md:w-full max-md:max-w-full max-md:min-w-0">
+            <Card className="max-md:w-full max-md:max-w-full max-md:min-w-0 max-md:overflow-hidden">
               <CardHeader>
                 <CardTitle>Editor SQL</CardTitle>
                 <CardDescription>
@@ -107,7 +107,7 @@ export function PlaygroundClient() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <SqlEditor value={query} onChange={setQuery} height="430px" />
+                <SqlEditor value={query} onChange={setQuery} height="430px" className="max-md:w-full max-md:max-w-full max-md:min-w-0" />
                 <Button onClick={handleRun} variant="secondary" disabled={running}>
                   {running ? (
                     <LoadingSpinner />
@@ -119,16 +119,16 @@ export function PlaygroundClient() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="max-md:w-full max-md:max-w-full max-md:min-w-0 max-md:overflow-hidden">
               <CardHeader>
                 <CardTitle>Hasil Query</CardTitle>
                 <CardDescription>
                   {running ? "Menjalankan query..." : result.message}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="max-md:w-full max-md:max-w-full max-md:min-w-0 max-md:overflow-hidden">
                 {running ? (
-                  <div className="flex min-h-[160px] items-center justify-center rounded-lg border bg-white text-sm font-semibold text-primary">
+                  <div className="flex min-h-[160px] items-center justify-center rounded-lg border bg-white text-sm font-semibold text-primary max-md:w-full max-md:max-w-full max-md:min-w-0">
                     <LoadingSpinner className="mr-2 text-secondary" />
                     Menjalankan query...
                   </div>
